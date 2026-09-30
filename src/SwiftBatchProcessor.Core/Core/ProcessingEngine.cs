@@ -70,6 +70,12 @@ public sealed class ProcessingEngine : IDisposable
     /// <summary>Days (including today) whose registry statuses are re-synced every cycle.</summary>
     public int StatusSyncDays { get; set; } = 7;
 
+    /// <summary>
+    /// Checked before every cycle; false stops the engine (e.g. another PC has claimed manager — two engines
+    /// would e-mail files twice and write to the same shared database).
+    /// </summary>
+    public Func<bool>? MayRun { get; set; }
+
     // ---------------------------------------------------------------- lifecycle
 
     public void Start()
@@ -157,6 +163,14 @@ public sealed class ProcessingEngine : IDisposable
         var summary = new CycleSummary { StartedAt = _clock() };
         try
         {
+            if (MayRun is not null && !MayRun())
+            {
+                _stopRequested = true;
+                _wake.Set();
+                Emit("[ERROR] This PC is no longer the manager (the team file names another Windows account). " +
+                     "The engine has stopped so that no file is e-mailed twice.");
+                return null;
+            }
             SetState(EngineState.Working);
             EngineSettings cfg = AppDb.LoadSettings();
             Emit("[CYCLE] Cycle started");

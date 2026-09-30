@@ -5,10 +5,11 @@ using SwiftBatchApp.Core;
 namespace SwiftBatchApp.Data;
 
 /// <summary>
-/// Local engine state in <c>SwiftBatch.db</c> next to the exe (copying the folder moves app + data).
-/// The Excel workbooks on the share are the source of truth for the UI; this database only serves the
-/// engine (settings, users/OOO, idempotency, fairness counts, deferred files, write-behind queue)
-/// and keeps a local history mirror (Files, Payments).
+/// The team's engine database <c>SwiftBatch.db</c>, kept in the SHARED folder next to Registry.xlsx
+/// (never on a PC). Only the manager's app opens it — one writer, so SQLite is safe on the network share
+/// (rollback journal, no WAL). It holds settings, users/OOO, idempotency, fairness counts, deferred files,
+/// the Excel write-behind queue and a history mirror (Files, Payments). The UI on every PC reads the
+/// Excel workbooks instead, so user PCs never open this file.
 /// </summary>
 public static class AppDb
 {
@@ -18,24 +19,37 @@ public static class AppDb
 
     public static string DbPath { get; private set; } = "";
     public static bool IsInitialized => _connectionString.Length > 0;
-    public static string DefaultPath => Path.Combine(AppContext.BaseDirectory, FileName);
 
     // ---------------------------------------------------------------- setup
 
-    public static void Initialize(string? path = null, DefaultsFile? defaults = null)
+    /// <summary>Opens (creating/upgrading if needed) the database at <paramref name="path"/>.</summary>
+    public static void Initialize(string path, DefaultsFile? defaults = null)
     {
-        DbPath = Path.GetFullPath(path ?? DefaultPath);
-        _connectionString = new SqliteConnectionStringBuilder
+        string full = Path.GetFullPath(path);
+        string connection = new SqliteConnectionStringBuilder
         {
-            DataSource = DbPath,
+            DataSource = full,
             Mode = SqliteOpenMode.ReadWriteCreate,
-            Pooling = false,              // release the file handle: the folder may be copied while closed
-            DefaultTimeout = 15,
+            Pooling = false,              // never keep the network file open between operations
+            DefaultTimeout = 30,          // busy timeout (seconds) — the share can be slow
         }.ToString();
 
-        using var c = Open();
-        EnsureSchema(c);
-        Seed(c, defaults);
+        using (var c = new SqliteConnection(connection))
+        {
+            c.Open();
+            Exec(c, "PRAGMA journal_mode=DELETE");      // WAL needs shared memory: unsafe on network shares
+            EnsureSchema(c);
+            Seed(c, defaults);
+        }
+        DbPath = full;
+        _connectionString = connection;
+    }
+
+    /// <summary>Forgets the open database (tests; switching shared folder).</summary>
+    public static void Close()
+    {
+        _connectionString = "";
+        DbPath = "";
     }
 
     private static SqliteConnection Open()

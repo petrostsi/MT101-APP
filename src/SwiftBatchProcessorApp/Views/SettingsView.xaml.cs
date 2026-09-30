@@ -31,7 +31,8 @@ public partial class SettingsView : UserControl, IRefreshable
         string Get(string key) => s.GetValueOrDefault(key, "");
         WatchFolder.Text = Get(SettingKeys.WatchFolder);
         ArchiveRoot.Text = Get(SettingKeys.ArchiveRoot);
-        RegistryPath.Text = Get(SettingKeys.RegistryPath);
+        RegistryPath.Text = LocalConfig.RegistryPath;
+        SharedInfo.Text = $"Kept there: AppUsers.json (team), SwiftBatch.db (database: {AppDb.DbPath}), logs\\ (engine logs).";
         MasterFilePath.Text = Get(SettingKeys.MasterFilePath);
         FileFilter.Text = Get(SettingKeys.FileFilter);
         SenderAccount.Text = Get(SettingKeys.SenderAccount);
@@ -75,7 +76,6 @@ public partial class SettingsView : UserControl, IRefreshable
         {
             [SettingKeys.WatchFolder] = WatchFolder.Text.Trim(),
             [SettingKeys.ArchiveRoot] = ArchiveRoot.Text.Trim(),
-            [SettingKeys.RegistryPath] = RegistryPath.Text.Trim(),
             [SettingKeys.MasterFilePath] = MasterFilePath.Text.Trim(),
             [SettingKeys.FileFilter] = FileFilter.Text.Trim().Length > 0 ? FileFilter.Text.Trim() : "*.prt",
             [SettingKeys.SenderAccount] = SenderAccount.Text.Trim(),
@@ -96,6 +96,18 @@ public partial class SettingsView : UserControl, IRefreshable
         catch (Exception ex)
         {
             Ui.Error("Could not save the settings: " + ex.Message);
+            return;
+        }
+
+        string newRegistry = RegistryPath.Text.Trim();
+        if (!string.Equals(newRegistry, LocalConfig.RegistryPath, StringComparison.OrdinalIgnoreCase))
+        {
+            // Another shared folder means another team database: restart to open it there.
+            LocalConfig.RegistryPath = newRegistry;
+            if (App.Engine?.State == EngineState.Working)
+                Ui.Warn("The registry location was saved. Restart the app when the current cycle has finished.");
+            else if (Ui.Confirm("The shared folder changed. The app must restart to open the database there.\n\nRestart now?"))
+                App.Relaunch();
             return;
         }
 

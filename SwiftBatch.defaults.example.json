@@ -1,6 +1,8 @@
 {
   // Copy this file to "SwiftBatch.defaults.json" (git-ignored) in the repo root: publish.bat puts it next to the exe.
-  // It seeds a NEW SwiftBatch.db only (missing settings + the user list when empty). Afterwards use Settings / Users.
+  // RegistryPath tells each PC where the team's shared folder is (remembered in SwiftBatch.local.json).
+  // The other values seed the team database SwiftBatch.db in that shared folder when the manager's app creates it.
+  // Afterwards use Settings / Users.
   // Keep real share paths and e-mail addresses out of git: this repository is public.
   "Settings": {
     "WatchFolder": "\\\\fileserver\\share\\MT942PMNTS",

@@ -51,8 +51,10 @@ public sealed class TeamMember
 /// <summary>
 /// Who is using this PC. Roles come from the Windows logon only (no PIN, by design):
 ///  * Manager — the Windows account named in the team file (the first PC that finds no team file claims it).
-///    Sees everything and is the ONLY PC that runs the engine.
-///  * User — mapped by Windows account in the team file, or self-selected once (IdentityPicker). Own work only.
+///    Sees everything, is the ONLY PC that runs the engine and the only one that opens the shared database.
+///  * User — mapped by Windows account in the team file, or self-selected once (IdentityPicker). Own work only;
+///    reads the shared Excel workbooks and never opens the database.
+/// Per-PC facts (shared-folder location, chosen identity) live in <see cref="LocalConfig"/>.
 /// </summary>
 public static class Session
 {
@@ -71,36 +73,40 @@ public static class Session
     /// <summary>Banner text when something needs attention (unreachable share, unreadable team file…).</summary>
     public static string Notice { get; private set; } = "";
 
+    /// <summary>Why the manager could not open the shared database ("" when it is open or not needed).</summary>
+    public static string DatabaseError { get; private set; } = "";
+
+    /// <summary>Seeds a brand-new shared database (set by the app from SwiftBatch.defaults.json).</summary>
+    public static DefaultsFile? Defaults { get; set; }
+
     public static event Action? Changed;
 
-    public static string TeamFilePath
-    {
-        get
-        {
-            string registry = AppDb.GetSetting(SettingKeys.RegistryPath);
-            string? dir = registry.Length > 0 ? Path.GetDirectoryName(registry) : null;
-            return string.IsNullOrEmpty(dir) ? "" : Path.Combine(dir, TeamFileName);
-        }
-    }
+    public static string TeamFilePath =>
+        LocalConfig.SharedFolder is { Length: > 0 } dir ? Path.Combine(dir, TeamFileName) : "";
 
-    /// <summary>Archive root for reading day workbooks: manager's setting, else the team file, else the registry folder.</summary>
+    /// <summary>Archive root for reading day workbooks: the manager's setting, else the team file, else the shared folder.</summary>
     public static string ArchiveRoot
     {
         get
         {
-            string local = AppDb.GetSetting(SettingKeys.ArchiveRoot);
-            if (IsManager && local.Length > 0) return local;
+            if (IsManager && AppDb.IsInitialized && AppDb.GetSetting(SettingKeys.ArchiveRoot) is { Length: > 0 } configured) return configured;
             if (Team?.ArchiveRoot is { Length: > 0 } shared) return shared;
-            if (local.Length > 0) return local;
-            string registry = AppDb.GetSetting(SettingKeys.RegistryPath);
-            return registry.Length > 0 ? Path.GetDirectoryName(registry) ?? "" : "";
+            return LocalConfig.SharedFolder;
         }
     }
 
-    public static string MyDisplayName =>
-        IsManager
-            ? AppDb.GetSetting(SettingKeys.ManagerName) is { Length: > 0 } n ? n : MyEmail
-            : Team?.Users.FirstOrDefault(u => Same(u.Email, MyEmail))?.DisplayName is { Length: > 0 } d ? d : MyEmail;
+    public static string MyDisplayName
+    {
+        get
+        {
+            if (IsManager)
+            {
+                string name = AppDb.IsInitialized ? AppDb.GetSetting(SettingKeys.ManagerName) : Team?.ManagerName ?? "";
+                return name.Length > 0 ? name : MyEmail;
+            }
+            return Team?.Users.FirstOrDefault(u => Same(u.Email, MyEmail))?.DisplayName is { Length: > 0 } d ? d : MyEmail;
+        }
+    }
 
     public static string ManagerLabel
     {
@@ -124,7 +130,8 @@ public static class Session
         string me = WindowsUser;
         Team = null;
         Notice = "";
-        string registry = AppDb.GetSetting(SettingKeys.RegistryPath);
+        DatabaseError = "";
+        string registry = LocalConfig.RegistryPath;
         string? dir = registry.Length > 0 ? Path.GetDirectoryName(registry) : null;
         SharedFolderReachable = !string.IsNullOrEmpty(dir) && Directory.Exists(dir);
 
@@ -160,7 +167,7 @@ public static class Session
                 : $"The shared folder is not reachable: {dir}";
         }
 
-        string cachedManager = AppDb.GetSetting(SettingKeys.ManagerWindowsUser);
+        string cachedManager = LocalConfig.ManagerWindowsUser;
         string managerAccount = Team?.ManagerWindowsUser ?? cachedManager;
         bool teamMissing = SharedFolderReachable && Team is null;
         if (managerAccount.Length > 0 && Same(managerAccount, me))
@@ -172,10 +179,10 @@ public static class Session
             return ResolveOutcome.Resolved;
         }
         if (Team is not null && cachedManager.Length > 0)
-            AppDb.SetSetting(SettingKeys.ManagerWindowsUser, "");     // manager moved to another PC/account
+            LocalConfig.ManagerWindowsUser = "";                    // manager moved to another PC/account
 
         Role = AppRole.User;
-        string chosen = AppDb.GetSetting(SettingKeys.MyEmail);
+        string chosen = LocalConfig.MyEmail;
         if (chosen.Length > 0 && (Team is null || Team.Users.Any(u => Same(u.Email, chosen))))
         {
             MyEmail = chosen;
@@ -199,14 +206,14 @@ public static class Session
     public static void SetIdentity(string email)
     {
         if (IsManager) ReleaseManager();
-        AppDb.SetSetting(SettingKeys.MyEmail, email.Trim());
+        LocalConfig.MyEmail = email.Trim();
         Role = AppRole.User;
         MyEmail = email.Trim();
         Raise();
     }
 
     /// <summary>Forget the local identity choice (used by "Switch account" before relaunching).</summary>
-    public static void ClearIdentity() => AppDb.SetSetting(SettingKeys.MyEmail, "");
+    public static void ClearIdentity() => LocalConfig.MyEmail = "";
 
     /// <summary>Makes the current Windows account the manager (recovery path; no PIN by design).</summary>
     public static void ClaimManagerOnThisMachine()
@@ -223,7 +230,7 @@ public static class Session
     /// <summary>Manager: publishes users and shared settings to the team file (best effort).</summary>
     public static bool SyncTeamFileFromDb()
     {
-        if (!IsManager) return false;
+        if (!IsManager || !AppDb.IsInitialized) return false;
         string path = TeamFilePath;
         if (path.Length == 0 || !Directory.Exists(Path.GetDirectoryName(path))) return false;
         try
@@ -256,14 +263,67 @@ public static class Session
     private static void BecomeManager(string me)
     {
         Role = AppRole.Manager;
-        MyEmail = AppDb.GetSetting(SettingKeys.ManagerEmail);
+        LocalConfig.ManagerWindowsUser = me;
+        OpenSharedDatabase();
+        MyEmail = AppDb.IsInitialized ? AppDb.GetSetting(SettingKeys.ManagerEmail) : "";
         if (MyEmail.Length == 0 && Team is not null) MyEmail = Team.ManagerEmail;
-        AppDb.SetSetting(SettingKeys.ManagerWindowsUser, me);
+    }
+
+    /// <summary>
+    /// Manager only: opens SwiftBatch.db in the shared folder (created on first use, seeded from the defaults file).
+    /// A pre-v2.5 database found next to the exe is moved there first, keeping its history.
+    /// </summary>
+    private static void OpenSharedDatabase()
+    {
+        if (AppDb.IsInitialized) return;
+        string path = LocalConfig.SharedDatabasePath;
+        if (path.Length == 0)
+        {
+            DatabaseError = "The shared folder is not set (registry path is empty).";
+            return;
+        }
+        try
+        {
+            string? folder = Path.GetDirectoryName(path);
+            if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
+                throw new DirectoryNotFoundException($"The shared folder is not reachable: {folder}");
+            if (!File.Exists(path) && File.Exists(LocalConfig.LegacyBackupPath))
+                File.Copy(LocalConfig.LegacyBackupPath, path);          // bring the old local history along
+            AppDb.Initialize(path, Defaults);
+            if (!string.Equals(AppDb.GetSetting(SettingKeys.RegistryPath), LocalConfig.RegistryPath, StringComparison.OrdinalIgnoreCase))
+                AppDb.SetSetting(SettingKeys.RegistryPath, LocalConfig.RegistryPath);
+            DatabaseError = "";
+        }
+        catch (Exception ex)
+        {
+            DatabaseError = $"The shared database {path} could not be opened: {ex.Message}";
+            Notice = DatabaseError;
+        }
+    }
+
+    /// <summary>
+    /// Engine guard, checked before every cycle: false when the team file now names another manager
+    /// (someone claimed manager elsewhere) — two engines would e-mail files twice and share one database.
+    /// An unreadable team file does not stop the engine (the share may just be slow).
+    /// </summary>
+    public static bool VerifyStillManager()
+    {
+        try
+        {
+            string path = TeamFilePath;
+            if (path.Length == 0 || !File.Exists(path)) return true;
+            string manager = TeamFile.Load(path).ManagerWindowsUser;
+            return manager.Length == 0 ? false : Same(manager, WindowsUser);
+        }
+        catch
+        {
+            return true;
+        }
     }
 
     private static void ReleaseManager()
     {
-        AppDb.SetSetting(SettingKeys.ManagerWindowsUser, "");
+        LocalConfig.ManagerWindowsUser = "";
         if (Team is null || TeamFilePath.Length == 0) return;
         try
         {
@@ -285,7 +345,7 @@ public static class Session
     /// </summary>
     private static void ImportUsersFromTeam(bool addMissing)
     {
-        if (Team is null) return;
+        if (Team is null || !AppDb.IsInitialized) return;
         List<AppUser> users = AppDb.GetUsers();
         foreach (TeamMember m in Team.Users.Where(m => m.Email.Length > 0))
         {
@@ -314,6 +374,7 @@ public static class Session
         MyEmail = "";
         Team = null;
         Notice = "";
+        DatabaseError = "";
         SharedFolderReachable = false;
     }
 }

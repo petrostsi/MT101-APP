@@ -41,6 +41,27 @@ Roles come from the Windows logon only — there is no PIN (by design). **Switch
 
 The team file `AppUsers.json` lives next to `Registry.xlsx`. The manager PC writes it (users, manager, archive location); user PCs only read it, so they need nothing but the registry path.
 
+### Where things are stored
+
+Everything the team depends on is in the **shared folder** on the server (the folder of `Registry.xlsx`) — nothing business-related is kept on a PC:
+
+```
+\\server\share\                   ← the registry's folder = the team's shared folder
+   Registry.xlsx                  one row per file
+   AppUsers.json                  team list, manager, archive location
+   SwiftBatch.db                  the engine's database: settings, users/OOO, files already sent,
+                                  deferred queue, queued Excel rows
+   logs\engine_yyyyMMdd.log       engine log
+   (archive) YYYY\MM\DD\          archived .prt files + PaymentOrders_YYMMDD.xlsx
+
+Each PC (folder of the exe)
+   SwiftBatch.local.json          only where the shared folder is + who uses this PC
+```
+
+Only the **manager's app** opens `SwiftBatch.db` — a single writer, which is what keeps SQLite safe on a network share. Users' PCs read the Excel workbooks and the team file, never the database. If another PC claims manager, the old manager's engine notices before its next cycle and stops.
+
+Upgrading from a version that kept `SwiftBatch.db` next to the exe: on the manager PC the file is moved to the shared folder automatically (history included); on every PC the old file is renamed `SwiftBatch.db.old`.
+
 ### Business rules
 
 - **One file = one user**, even when it contains many payment orders. Exactly one final e-mail per file.
@@ -69,8 +90,8 @@ Columns are always addressed by header text. Older workbooks are upgraded in pla
 
 ## Install / deploy (no admin rights)
 
-1. Copy `SwiftBatchProcessorApp.exe` to a folder you can write to (e.g. `C:\Users\<you>\SwiftBatch\`) — **not** Program Files. The local database `SwiftBatch.db` and `logs\` are created next to it.
-2. **Manager PC first.** Start the exe. If `SwiftBatch.defaults.json` sits next to it, its values seed the settings and user list; otherwise fill in **Settings** (watch folder, archive root, registry path, manager e-mail) and **Users**. The first start that reaches the shared folder without an `AppUsers.json` makes this Windows account the manager.
+1. Copy `SwiftBatchProcessorApp.exe` (+ `SwiftBatch.defaults.json`) to a folder you can write to (e.g. `C:\Users\<you>\SwiftBatch\`) — **not** Program Files. Only the small `SwiftBatch.local.json` is created there.
+2. **Manager PC first.** Start the exe. The registry path from `SwiftBatch.defaults.json` locates the shared folder; the first start that reaches it without a registry or `AppUsers.json` makes this Windows account the manager and creates `SwiftBatch.db` there, seeded from the defaults file. Without a defaults file, use **Locate registry…**, then fill in **Settings** and **Users**.
 3. In **Users**, enter each processor's Windows user name so their PCs recognise them automatically (otherwise they pick themselves once).
 4. Copy the same exe to the users' PCs. If their registry path differs from the default, they use **Locate registry…** once.
 5. Outlook desktop is only needed on the manager PC. Start the engine on the Dashboard (or tick *Start automatically*).
@@ -83,7 +104,7 @@ Columns are always addressed by header text. Older workbooks are upgraded in pla
 |---|---|---|
 | Watch folder | – | where new `.prt` files arrive |
 | Archive root | – | `…\YYYY\MM\DD\` folders and day workbooks |
-| Registry path | – | `Registry.xlsx` (team file `AppUsers.json` is kept next to it) |
+| Registry path | – | `Registry.xlsx`; its folder is the shared folder (team file, database, logs). Stored per PC in `SwiftBatch.local.json`; changing it restarts the app |
 | Master customer file | empty | `.xlsx` for customer validation; empty = off |
 | File filter | `*.prt` | `;`-separated patterns |
 | Send from account | default account | SMTP address of the Outlook account to send from |
@@ -129,4 +150,5 @@ docs/MT101_FORMAT.md              notes on the .prt print format the parser reli
 - **Rows "queued"** — someone has the workbook open in Excel. Nothing is lost; the rows are written at the next cycle after it is closed.
 - **Everybody receives the OOO treatment / nobody does** — check `Out-of-office wait` and that replies arrive in the sending account's inbox. A user who switched OOO on *before* an earlier probe today may not reply again (Exchange replies once per sender): toggle OOO manually in Users.
 - **Outlook asks for permission to send** — your Outlook security settings block programmatic access; ask IT for the usual "antivirus up to date" policy. Use *Send test e-mail* in Settings to check.
-- Logs: `logs\engine_yyyyMMdd.log` next to the exe (manager PC).
+- **"The shared database could not be opened"** at start-up (manager PC) — the share is unreachable. The app offers Retry / Locate registry / Exit; it cannot run the engine without the shared folder.
+- Logs: `logs\engine_yyyyMMdd.log` in the shared folder.

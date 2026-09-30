@@ -27,7 +27,7 @@ public static class WorkbookStore
     public static event Action? Changed;
 
     /// <summary>Overridable in tests; defaults to the local settings / session.</summary>
-    internal static Func<string> RegistryPathProvider = () => AppDb.GetSetting(SettingKeys.RegistryPath);
+    internal static Func<string> RegistryPathProvider = () => LocalConfig.RegistryPath;
     internal static Func<string> ArchiveRootProvider = () => Session.ArchiveRoot;
 
     public static string RegistryPath => RegistryPathProvider();

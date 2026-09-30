@@ -60,6 +60,22 @@ public static class Ui
         Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
     }
 
+    /// <summary>File dialog for Registry.xlsx on the shared folder (it may not exist yet). Null when cancelled.</summary>
+    public static string? PickRegistry(Window? owner)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "Locate the registry workbook on the shared folder",
+            Filter = "Registry workbook (*.xlsx)|*.xlsx",
+            CheckFileExists = false,
+            FileName = Path.GetFileName(LocalConfig.RegistryPath) is { Length: > 0 } n ? n : "Registry.xlsx",
+        };
+        string folder = LocalConfig.SharedFolder;
+        if (folder.Length > 0 && Directory.Exists(folder)) dlg.InitialDirectory = folder;
+        bool? ok = owner is null ? dlg.ShowDialog() : dlg.ShowDialog(owner);
+        return ok == true ? dlg.FileName : null;
+    }
+
     /// <summary>Case-insensitive "contains" over several fields.</summary>
     public static bool Matches(string search, params string?[] fields) =>
         search.Length == 0 || fields.Any(f => f is not null && f.Contains(search, StringComparison.OrdinalIgnoreCase));

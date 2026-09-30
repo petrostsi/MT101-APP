@@ -4,7 +4,8 @@ namespace SwiftBatchApp.Data;
 
 /// <summary>
 /// Optional organisation defaults read from <c>SwiftBatch.defaults.json</c> next to the exe.
-/// They seed a NEW SwiftBatch.db (settings that are still missing, and the user list when empty),
+/// RegistryPath locates the shared folder for each PC (LocalConfig); the rest seed the shared
+/// SwiftBatch.db when the manager's app creates it (missing settings, and the user list when empty),
 /// so real share paths and team e-mails never have to be compiled into the (public) source.
 /// See SwiftBatch.defaults.example.json.
 /// </summary>

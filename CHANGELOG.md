@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.5.0 — team database on the server (2026-09-30)
+
+- `SwiftBatch.db` now lives in the **shared folder** next to `Registry.xlsx` (business rule: no data stored on a PC). Only the manager's app opens it; users' PCs never do.
+- Engine logs are written to `…\logs\` in the shared folder.
+- Each PC keeps only `SwiftBatch.local.json`: the registry path (= shared folder) and the chosen identity.
+- Upgrade: a local `SwiftBatch.db` from an earlier version is moved to the shared folder by the manager's app (history kept) and renamed `SwiftBatch.db.old` on every PC.
+- The engine stops itself when the team file names another manager, so two PCs never process (or write the database) at the same time.
+- Manager start-up without the share: Retry / Locate registry / Exit instead of running without data.
+- SQLite forced to the rollback journal (no WAL) for network-share safety.
+
 ## 2.4.0 — clean rebuild (2026-09-30)
 
 Rebuilt from the v2.3.1 project handoff with new code, the same feature set and business rules, plus:

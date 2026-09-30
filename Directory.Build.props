@@ -1,7 +1,7 @@
 <Project>
   <!-- Shared by every project. The version lives HERE ONLY: the UI reads it from the assembly. -->
   <PropertyGroup>
-    <Version>2.4.0</Version>
+    <Version>2.5.0</Version>
     <Product>SWIFT Batch Processor</Product>
     <Copyright>Internal tool</Copyright>
     <LangVersion>latest</LangVersion>

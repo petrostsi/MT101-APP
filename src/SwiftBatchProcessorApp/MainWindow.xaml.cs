@@ -83,7 +83,7 @@ public partial class MainWindow : Window
         }
         RefreshText.Text = $"Data refreshed {DateTime.Now:HH:mm:ss}";
         UpdateNotice();
-        (ViewHost.Content as IRefreshable)?.Refresh();
+        RefreshCurrentView();
     }
 
     private void UpdateStatusBar()
@@ -137,7 +137,21 @@ public partial class MainWindow : Window
     {
         UserControl view = GetView(key);
         ViewHost.Content = view;
-        (view as IRefreshable)?.Refresh();
+        RefreshCurrentView();
+    }
+
+    /// <summary>A view that cannot load (e.g. the share dropped) reports it in the banner instead of a dialog.</summary>
+    private void RefreshCurrentView()
+    {
+        try
+        {
+            (ViewHost.Content as IRefreshable)?.Refresh();
+        }
+        catch (Exception ex)
+        {
+            NoticeText.Text = "Could not load this page: " + ex.Message;
+            NoticeBanner.Visibility = Visibility.Visible;
+        }
     }
 
     private T Navigate<T>(RadioButton nav) where T : UserControl
@@ -171,19 +185,8 @@ public partial class MainWindow : Window
 
     private void LocateRegistry_Click(object sender, RoutedEventArgs e)
     {
-        var dlg = new Microsoft.Win32.OpenFileDialog
-        {
-            Title = "Locate Registry.xlsx on the shared folder",
-            Filter = "Registry workbook (*.xlsx)|*.xlsx",
-            CheckFileExists = false,
-            FileName = "Registry.xlsx",
-        };
-        string current = WorkbookStore.RegistryPath;
-        string? dir = current.Length > 0 ? Path.GetDirectoryName(current) : null;
-        if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir)) dlg.InitialDirectory = dir;
-        if (dlg.ShowDialog(this) != true) return;
-
-        AppDb.SetSetting(SettingKeys.RegistryPath, dlg.FileName);
+        if (Ui.PickRegistry(this) is not { } registry) return;
+        LocalConfig.RegistryPath = registry;
         if (Ui.Confirm("Registry location saved. Restart the app now to apply it?")) App.Relaunch();
     }
 

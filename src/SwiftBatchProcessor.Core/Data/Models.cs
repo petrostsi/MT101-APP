@@ -85,10 +85,11 @@ public static class SettingKeys
     public const string MasterFilePath = "MasterFilePath";
     public const string Holidays = "Holidays";
     public const string AutoStart = "AutoStart";
-    public const string ManagerWindowsUser = "ManagerWindowsUser";
-    public const string MyEmail = "MyEmail";
 
-    /// <summary>Built-in defaults. Organisation-specific values come from SwiftBatch.defaults.json.</summary>
+    /// <summary>
+    /// Built-in defaults. Organisation-specific values come from SwiftBatch.defaults.json. RegistryPath is kept in
+    /// the shared database for the engine, but each PC finds the shared folder through LocalConfig.
+    /// </summary>
     public static readonly IReadOnlyDictionary<string, string> Defaults = new Dictionary<string, string>
     {
         [WatchFolder] = "",
@@ -105,8 +106,6 @@ public static class SettingKeys
         [MasterFilePath] = "",
         [Holidays] = "",
         [AutoStart] = "0",
-        [ManagerWindowsUser] = "",
-        [MyEmail] = "",
     };
 }
 

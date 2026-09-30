@@ -31,8 +31,9 @@ src/SwiftBatchProcessor.Core/   net8.0 — ALL logic, testable anywhere
   Core/ExcelReader|Writer.cs    Open XML; lock-free reads; header-mapped writes; retries → IOException
   Core/WorkbookLayout.cs        registry / daily headers (business contract), folder layout, FileStatus
   Core/OutlookMailer.cs         late-bound COM (dynamic), STA only; IMailer for tests
-  Core/Session.cs               roles from Windows logon + AppUsers.json team file next to Registry.xlsx
-  Data/AppDb.cs                 SQLite SwiftBatch.db next to the exe (settings, users/OOO, Files, Deferred, PendingRows)
+  Core/Session.cs               roles from Windows logon + AppUsers.json team file; manager opens the shared DB
+  Core/LocalConfig.cs           per-PC SwiftBatch.local.json: registry path (= shared folder) + identity only
+  Data/AppDb.cs                 SQLite SwiftBatch.db IN THE SHARED FOLDER (settings, users/OOO, Files, Deferred, PendingRows)
   Data/WorkbookStore.cs         UI data from Excel (cached by mtime); WorkbookOps.cs = write-backs
 src/SwiftBatchProcessorApp/     net8.0-windows WPF — App.xaml (all styles), MainWindow, Views/*, Controls/BarChart
 tests/SwiftBatchProcessor.Tests xUnit; synthetic .prt fixtures; engine tests use temp dirs + FakeMailer + fake clock
@@ -46,7 +47,8 @@ tests/SwiftBatchProcessor.Tests xUnit; synthetic .prt fixtures; engine tests use
 - **Palette**: yellow `#FFB81C`, charcoal `#1E1E24`. No copyrighted/brand assets (the icon is generated).
 - **No lock/PIN on admin screens** (declined). Roles come from the Windows account only.
 - **The engine runs only on the manager's PC.** User PCs must never process (would duplicate e-mails).
-- **Excel is the source of truth for the UI** so user PCs work without the manager's SQLite.
+- **Excel is the source of truth for the UI** so user PCs work without the database.
+- **No business data on a PC.** `SwiftBatch.db`, `AppUsers.json`, workbooks and engine logs live in the shared folder (the registry's folder). A PC keeps only `SwiftBatch.local.json` (shared-folder location + identity). Only the manager's app opens the database (single writer — SQLite on SMB is only safe that way; keep journal_mode=DELETE, never WAL).
 - **A user holding a workbook open must never crash the engine or lose a row** (retries → PendingRows queue).
 - One file = one user; exactly one final e-mail per file; assignment fair + random, never a hierarchy.
 - Verify Microsoft behaviour (Exchange OOO, Outlook object model) against Microsoft Learn before claiming it.
@@ -81,6 +83,7 @@ tests/SwiftBatchProcessor.Tests xUnit; synthetic .prt fixtures; engine tests use
 | Header-mapped appends + `EnsureHeaders` | positional columns | old workbooks keep working when columns are added |
 | File status derived from payments (Completed iff all payments Completed) | manual file status | one source of truth |
 | Team file `AppUsers.json` next to the registry, written by the manager | per-PC config | user PCs need only the registry path; carries the archive root too |
+| `SwiftBatch.db` in the shared folder, opened only by the manager's app; engine checks `Session.VerifyStillManager` before each cycle | DB next to the exe (≤ v2.4) / every PC opening it | business rule: no data on a PC; one writer keeps SQLite safe on a network share |
 | Engine on a dedicated STA thread, `SemaphoreSlim` against overlapping cycles, single-instance mutex | timers | Outlook COM needs STA; no double processing |
 | Core logic in a `net8.0` library | everything in the WPF project | tests run on any OS / CI |
 | No trimming | `PublishTrimmed` | WPF does not support trimming |

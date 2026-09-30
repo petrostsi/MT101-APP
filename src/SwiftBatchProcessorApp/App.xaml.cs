@@ -31,7 +31,9 @@ public partial class App : Application
         .Split('+')[0];
 
     public static string AppFolder => AppContext.BaseDirectory;
-    public static string LogFolder => Path.Combine(AppFolder, "logs");
+
+    /// <summary>Engine logs live in the shared folder (…\logs), next to the database.</summary>
+    public static string LogFolder => LocalConfig.SharedLogFolder is { Length: > 0 } shared ? shared : Path.Combine(AppFolder, "logs");
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -53,18 +55,20 @@ public partial class App : Application
             return;
         }
 
+        DefaultsFile? defaults;
         try
         {
-            AppDb.Initialize(null, DefaultsFile.Load());
+            defaults = DefaultsFile.Load();
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"The local database next to the program could not be opened:\n\n{ex.Message}\n\n" +
-                            "Run the program from a folder you can write to (not Program Files).",
+            MessageBox.Show($"{DefaultsFile.FileName} next to the program could not be read:\n\n{ex.Message}",
                 "SWIFT Batch Processor", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown();
             return;
         }
+        LocalConfig.Load(defaults);            // this PC: where the shared folder is + who I am
+        Session.Defaults = defaults;           // seeds the shared database the first time it is created
 
         bool switchAccount = e.Args.Contains(SwitchAccountArg, StringComparer.OrdinalIgnoreCase);
         ResolveOutcome outcome = Session.Resolve();
@@ -76,6 +80,22 @@ public partial class App : Application
                 Shutdown();
                 return;
             }
+        }
+
+        // The manager's app cannot work without the shared database: retry, relocate or exit.
+        while (Session.IsManager && !AppDb.IsInitialized)
+        {
+            MessageBoxResult answer = MessageBox.Show(
+                $"{Session.DatabaseError}\n\nThe team's database lives in the shared folder, so the manager's app needs it.\n\n" +
+                "Yes = try again     No = locate Registry.xlsx     Cancel = exit",
+                "SWIFT Batch Processor — shared folder", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning);
+            if (answer == MessageBoxResult.Cancel)
+            {
+                Shutdown();
+                return;
+            }
+            if (answer == MessageBoxResult.No && Ui.PickRegistry(null) is { } registry) LocalConfig.RegistryPath = registry;
+            Session.Resolve();
         }
 
         if (Session.IsManager) CreateEngine();
@@ -107,7 +127,11 @@ public partial class App : Application
     public static void CreateEngine()
     {
         if (Engine is not null) return;
-        Engine = new ProcessingEngine(cfg => new OutlookMailer(cfg.SenderAccount)) { LogDirectory = LogFolder };
+        Engine = new ProcessingEngine(cfg => new OutlookMailer(cfg.SenderAccount))
+        {
+            LogDirectory = LogFolder,
+            MayRun = Session.VerifyStillManager,
+        };
         Engine.Log += line => Current?.Dispatcher.BeginInvoke(() =>
         {
             EngineLog.Add(line);

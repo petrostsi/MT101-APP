@@ -360,4 +360,17 @@ public class ProcessingEngineTests : IDisposable
         Assert.Contains("99.999,99", body);
         Assert.Contains("TXN0000103", body);
     }
+
+    [Fact]
+    public void Engine_stops_when_this_pc_is_no_longer_the_manager()
+    {
+        Fixtures.CopyTo(Fixtures.SingleMt103, Watch);
+        _engine.MayRun = () => false;
+
+        Assert.Null(_engine.RunCycle());
+
+        Assert.Empty(_mail.Sent);
+        Assert.Single(Directory.GetFiles(Watch));
+        Assert.Contains(_log, l => l.Contains("no longer the manager"));
+    }
 }

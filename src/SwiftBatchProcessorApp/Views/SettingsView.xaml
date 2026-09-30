@@ -10,7 +10,7 @@
         <StackPanel DockPanel.Dock="Top">
             <TextBlock Text="Settings" Style="{StaticResource PageTitle}"/>
             <TextBlock Style="{StaticResource PageSubtitle}"
-                       Text="Stored in SwiftBatch.db next to the program on this (manager) PC. The engine re-reads them at every cycle; the archive location is shared with the users' PCs through the team file."/>
+                       Text="Stored in the team's database SwiftBatch.db in the shared folder. The engine re-reads them at every cycle; the archive location reaches the users' PCs through the team file."/>
         </StackPanel>
 
         <Border DockPanel.Dock="Bottom" Style="{StaticResource Card}" Margin="0,12,0,0" Padding="14,10">
@@ -48,12 +48,13 @@
                                 <TextBox x:Name="ArchiveRoot"/>
                                 <Button Grid.Column="1" Content="Browse…" Margin="6,0,0,0" Click="BrowseArchive_Click"/>
                             </Grid>
-                            <TextBlock Text="Registry workbook (Registry.xlsx — the team file AppUsers.json is kept next to it)" Style="{StaticResource Muted}"/>
-                            <Grid Style="{StaticResource Row}">
+                            <TextBlock Text="Registry workbook — its folder is the team's shared folder" Style="{StaticResource Muted}"/>
+                            <Grid Margin="0,0,0,2">
                                 <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                 <TextBox x:Name="RegistryPath"/>
                                 <Button Grid.Column="1" Content="Browse…" Margin="6,0,0,0" Click="BrowseRegistry_Click"/>
                             </Grid>
+                            <TextBlock x:Name="SharedInfo" Style="{StaticResource Muted}" FontSize="11.5" Margin="0,0,0,10"/>
                             <TextBlock Text="Master customer file (.xlsx; empty = no customer validation)" Style="{StaticResource Muted}"/>
                             <Grid Style="{StaticResource Row}">
                                 <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
