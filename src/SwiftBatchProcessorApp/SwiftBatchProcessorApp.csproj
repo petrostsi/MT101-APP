@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>SwiftBatchApp</RootNamespace>
+    <AssemblyName>SwiftBatchProcessorApp</AssemblyName>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <!-- Late-bound Outlook COM (dynamic) -->
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <!-- WPF does not support trimming -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SwiftBatchProcessor.Core\SwiftBatchProcessor.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+    <Resource Include="Assets\app.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- WPF's implicit usings leave out System.IO (clash with System.Windows.Shapes.Path); no view uses Shapes.Path. -->
+    <Using Include="System.IO" />
+  </ItemGroup>
+
+</Project>

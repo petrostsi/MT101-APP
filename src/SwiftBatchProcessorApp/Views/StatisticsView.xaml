@@ -1,0 +1,100 @@
+<UserControl x:Class="SwiftBatchApp.Views.StatisticsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:SwiftBatchApp.Controls">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="24,20,24,24">
+            <TextBlock Text="Statistics" Style="{StaticResource PageTitle}"/>
+            <TextBlock x:Name="Subtitle" Style="{StaticResource PageSubtitle}"/>
+
+            <WrapPanel Margin="0,16,0,0">
+                <TextBlock Text="From" Style="{StaticResource FieldLabel}" Margin="0,0,8,0"/>
+                <DatePicker x:Name="FromDate" Width="120" SelectedDateChanged="Dates_Changed"/>
+                <TextBlock Text="To" Style="{StaticResource FieldLabel}" Margin="12,0,8,0"/>
+                <DatePicker x:Name="ToDate" Width="120" SelectedDateChanged="Dates_Changed"/>
+                <Button Content="Today" Margin="16,0,6,0" Click="Preset_Click" Tag="today"/>
+                <Button Content="Last 7 days" Margin="0,0,6,0" Click="Preset_Click" Tag="7"/>
+                <Button Content="This month" Margin="0,0,6,0" Click="Preset_Click" Tag="month"/>
+                <Button Content="Last month" Margin="0,0,6,0" Click="Preset_Click" Tag="lastmonth"/>
+                <Button Content="This year" Click="Preset_Click" Tag="year"/>
+            </WrapPanel>
+
+            <UniformGrid Columns="6" Margin="0,16,-12,0">
+                <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                    <StackPanel><TextBlock x:Name="KpiFiles" Style="{StaticResource KpiValue}"/><TextBlock Text="Files" Style="{StaticResource KpiLabel}"/></StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                    <StackPanel><TextBlock x:Name="KpiOrders" Style="{StaticResource KpiValue}"/><TextBlock Text="Payment orders" Style="{StaticResource KpiLabel}"/></StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                    <StackPanel><TextBlock x:Name="KpiTypes" Style="{StaticResource KpiValue}"/><TextBlock Text="MT103 / MTF" Style="{StaticResource KpiLabel}"/></StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                    <StackPanel><TextBlock x:Name="KpiCompleted" Style="{StaticResource KpiValue}" Foreground="{StaticResource SuccessBrush}"/><TextBlock Text="Files completed" Style="{StaticResource KpiLabel}"/></StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                    <StackPanel><TextBlock x:Name="KpiAvg" Style="{StaticResource KpiValue}"/><TextBlock Text="Orders per file" Style="{StaticResource KpiLabel}"/></StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                    <StackPanel><TextBlock x:Name="KpiDeferred" Style="{StaticResource KpiValue}"/><TextBlock Text="Received after cut-off" Style="{StaticResource KpiLabel}"/></StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <Grid Margin="0,16,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="16"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock x:Name="ByUserTitle" Text="Payment orders by user" Style="{StaticResource SectionTitle}"/>
+                        <controls:BarChart x:Name="ByUserChart" LabelWidth="190"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Files by day" Style="{StaticResource SectionTitle}"/>
+                        <controls:BarChart x:Name="ByDayChart" LabelWidth="110"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="2" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Files by status" Style="{StaticResource SectionTitle}"/>
+                        <controls:BarChart x:Name="ByStatusChart" LabelWidth="120"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="2" Grid.Column="2" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Top clients (files)" Style="{StaticResource SectionTitle}"/>
+                        <controls:BarChart x:Name="ByClientChart" LabelWidth="190"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="Per user" Style="{StaticResource SectionTitle}"/>
+                    <DataGrid x:Name="UserTable" Style="{StaticResource GridBase}" MaxHeight="360">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="User" Binding="{Binding User}" Width="*" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="Files" Binding="{Binding Files}" Width="70" ElementStyle="{StaticResource CellNumber}"/>
+                            <DataGridTextColumn Header="Orders" Binding="{Binding Orders}" Width="70" ElementStyle="{StaticResource CellNumber}"/>
+                            <DataGridTextColumn Header="MT103" Binding="{Binding Mt103}" Width="70" ElementStyle="{StaticResource CellNumber}"/>
+                            <DataGridTextColumn Header="MTF" Binding="{Binding Mtf}" Width="70" ElementStyle="{StaticResource CellNumber}"/>
+                            <DataGridTextColumn Header="Completed" Binding="{Binding Completed}" Width="90" ElementStyle="{StaticResource CellNumber}"/>
+                            <DataGridTextColumn Header="Open" Binding="{Binding Open}" Width="70" ElementStyle="{StaticResource CellNumber}"/>
+                            <DataGridTextColumn Header="Share of orders" Binding="{Binding ShareText}" SortMemberPath="Share" Width="120" ElementStyle="{StaticResource CellNumber}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

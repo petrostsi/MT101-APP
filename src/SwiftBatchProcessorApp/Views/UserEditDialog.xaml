@@ -1,0 +1,24 @@
+<Window x:Class="SwiftBatchApp.Views.UserEditDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="User"
+        Width="440" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{StaticResource PageBrush}" FontFamily="Segoe UI" FontSize="13">
+    <StackPanel Margin="22">
+        <TextBlock x:Name="TitleText" Style="{StaticResource SectionTitle}" FontSize="17"/>
+
+        <TextBlock Text="E-mail address" Style="{StaticResource Muted}" Margin="0,6,0,0"/>
+        <TextBox x:Name="EmailBox" Margin="0,2,0,10"/>
+        <TextBlock Text="Display name" Style="{StaticResource Muted}"/>
+        <TextBox x:Name="NameBox" Margin="0,2,0,10"/>
+        <TextBlock Text="Windows user name (recognises this person on their own PC; optional)" Style="{StaticResource Muted}" TextWrapping="Wrap"/>
+        <TextBox x:Name="WindowsBox" Margin="0,2,0,10"/>
+        <CheckBox x:Name="ActiveCheck" Content="Active — receives files" IsChecked="True"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+            <Button Content="Cancel" Margin="0,0,8,0" IsCancel="True"/>
+            <Button Content="Save" Style="{StaticResource PrimaryButton}" IsDefault="True" Click="Save_Click"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

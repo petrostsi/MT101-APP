@@ -1,0 +1,122 @@
+<UserControl x:Class="SwiftBatchApp.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24,20,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock Text="Dashboard" Style="{StaticResource PageTitle}"/>
+            <TextBlock x:Name="Subtitle" Style="{StaticResource PageSubtitle}"/>
+        </StackPanel>
+
+        <!-- Engine strip (manager PC only) -->
+        <Border x:Name="EngineCard" Grid.Row="1" Style="{StaticResource Card}" Margin="0,16,0,0" Padding="14,10">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button x:Name="StartStopButton" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0" Click="StartStop_Click"/>
+                    <Button Content="Check now" Margin="0,0,8,0" Click="CheckNow_Click"/>
+                    <Button Content="Open log" Click="OpenProcessing_Click"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse x:Name="EngineDot" Width="10" Height="10" Margin="0,0,9,0"/>
+                    <TextBlock x:Name="EngineStatus" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="EngineDetail" Style="{StaticResource Muted}" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <UniformGrid Grid.Row="2" Columns="6" Margin="0,16,-12,0">
+            <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                <StackPanel>
+                    <TextBlock x:Name="KpiFiles" Style="{StaticResource KpiValue}"/>
+                    <TextBlock Text="Files today" Style="{StaticResource KpiLabel}"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                <StackPanel>
+                    <TextBlock x:Name="KpiOrders" Style="{StaticResource KpiValue}"/>
+                    <TextBlock Text="Payment orders today" Style="{StaticResource KpiLabel}"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                <StackPanel>
+                    <TextBlock x:Name="KpiTypes" Style="{StaticResource KpiValue}"/>
+                    <TextBlock Text="MT103 / MTF today" Style="{StaticResource KpiLabel}"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                <StackPanel>
+                    <TextBlock x:Name="KpiPending" Style="{StaticResource KpiValue}" Foreground="{StaticResource AccentDarkBrush}"/>
+                    <TextBlock x:Name="KpiPendingLabel" Text="Pending payments (all days)" Style="{StaticResource KpiLabel}"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                <StackPanel>
+                    <TextBlock x:Name="KpiCompleted" Style="{StaticResource KpiValue}" Foreground="{StaticResource SuccessBrush}"/>
+                    <TextBlock Text="Files completed today" Style="{StaticResource KpiLabel}"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                <StackPanel>
+                    <TextBlock x:Name="KpiExceptions" Style="{StaticResource KpiValue}" Foreground="{StaticResource DangerBrush}"/>
+                    <TextBlock Text="Escalated / no match / parse error today" Style="{StaticResource KpiLabel}"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <Grid Grid.Row="3" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="7*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Style="{StaticResource Card}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" x:Name="PendingTitle" Text="Pending work by user" Style="{StaticResource SectionTitle}"/>
+                    <TextBlock DockPanel.Dock="Bottom" Text="Double-click a row to open those payments." Style="{StaticResource Muted}" Margin="0,8,0,0" FontSize="11.5"/>
+                    <DataGrid x:Name="PendingGrid" Style="{StaticResource GridBase}" MouseDoubleClick="PendingGrid_DoubleClick">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="User" Binding="{Binding User}" Width="*" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="Payments" Binding="{Binding PendingPayments}" Width="85" ElementStyle="{StaticResource CellNumber}"/>
+                            <DataGridTextColumn Header="Files" Binding="{Binding PendingFiles}" Width="60" ElementStyle="{StaticResource CellNumber}"/>
+                            <DataGridTextColumn Header="Oldest" Binding="{Binding OldestText}" SortMemberPath="OldestDay" Width="95" ElementStyle="{StaticResource CellText}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource Card}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" x:Name="TodayTitle" Text="Today's files" Style="{StaticResource SectionTitle}"/>
+                    <TextBlock DockPanel.Dock="Bottom" Text="Double-click a file to open it in the registry." Style="{StaticResource Muted}" Margin="0,8,0,0" FontSize="11.5"/>
+                    <DataGrid x:Name="TodayGrid" Style="{StaticResource GridBase}" MouseDoubleClick="TodayGrid_DoubleClick">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Status" SortMemberPath="DisplayStatus" Width="120">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Ellipse Width="8" Height="8" Margin="0,0,7,0" Fill="{Binding DisplayStatus, Converter={StaticResource StatusBrush}}"/>
+                                            <TextBlock Text="{Binding DisplayStatus}" Style="{StaticResource CellText}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="File" Binding="{Binding FileName}" Width="120" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="Orders" Binding="{Binding Orders}" Width="65" ElementStyle="{StaticResource CellNumber}"/>
+                            <DataGridTextColumn Header="MT103" Binding="{Binding Mt103}" Width="60" ElementStyle="{StaticResource CellNumber}"/>
+                            <DataGridTextColumn Header="MTF" Binding="{Binding Mtf}" Width="50" ElementStyle="{StaticResource CellNumber}"/>
+                            <DataGridTextColumn Header="Assigned user" Binding="{Binding AssignedUser}" Width="*" ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="Logged at" Binding="{Binding LoggedAt}" Width="140" ElementStyle="{StaticResource CellText}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

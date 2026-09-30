@@ -1,0 +1,97 @@
+08/07/26-10:00:00	   MT942PMNTS-3461-300010 	 1
+--------------------- Instance Type and Transmission --------------
+       Original received from SWIFT
+       Priority : Normal
+--------------------------- Message Header -------------------------
+       Swift Output : FIN 101 Request for Transfer
+       Sender   : BETAGRA1XXX
+                  BETA SHIPPING
+       Receiver : PIRBGRAAXXX
+                  HOUSE BANK S.A.
+                  ATHENS GR
+--------------------------- Message Text ---------------------------
+       20: Sender's Reference
+           REFBETA01
+       28D: Message Index/Total
+           1/1
+       30: Requested Execution Date
+           260708
+       50H: Ordering Customer
+           /GR1101400000000000000000111
+           BETA SHIPPING CO
+           ATHENS
+       21: Transaction Reference
+           TXNB00001
+       32B: Currency/Transaction Amount
+           Currency : EUR
+           Amount   :                       #500,00#
+       57A: Account With Institution - BIC
+           BNPAFRPP
+           CORRESPONDENT BANK
+       59: Beneficiary Customer
+           /FR7630006000011234567890189
+           SOCIETE ALPHA
+           SOMEWHERE
+       70: Remittance Information
+           INVOICE
+       71A: Details of Charges
+           SHA
+       21: Transaction Reference
+           TXNB00002
+       32B: Currency/Transaction Amount
+           Currency : EUR
+           Amount   :                       #750,25#
+
+08/07/26-10:00:00	   MT942PMNTS-3461-300010 	 2
+
+       57A: Account With Institution - BIC
+           PIRBGRAAXXX
+       59: Beneficiary Customer
+           /GR0000000000000000000000002
+           ONUS CLIENT
+       71A: Details of Charges
+           OUR
+--------------------------- Message Trailer ------------------------
+       {CHK:0123456789AB}
+
+08/07/26-10:00:05	   MT942PMNTS-3461-300011 	 1
+--------------------- Instance Type and Transmission --------------
+       Original received from SWIFT
+       Priority : Normal
+--------------------------- Message Header -------------------------
+       Swift Output : FIN 101 Request for Transfer
+       Sender   : BETAGRA1XXX
+                  BETA SHIPPING
+       Receiver : PIRBGRAAXXX
+                  HOUSE BANK S.A.
+                  ATHENS GR
+--------------------------- Message Text ---------------------------
+       20: Sender's Reference
+           REFBETA02
+       28D: Message Index/Total
+           1/1
+       30: Requested Execution Date
+           260709
+       50H: Ordering Customer
+           /GR1101400000000000000000222
+           BETA SHIPPING CO
+           ATHENS
+       21: Transaction Reference
+           TXNB00003
+       32B: Currency/Transaction Amount
+           Currency : GBP
+           Amount   :                       #1.234.567,89#
+       57A: Account With Institution - BIC
+           BARCGB22
+           CORRESPONDENT BANK
+       59: Beneficiary Customer
+           /GB33BUKB20201555555555
+           GAMMA PLC
+           SOMEWHERE
+       70: Remittance Information
+           INVOICE
+       71A: Details of Charges
+           SHA
+--------------------------- Message Trailer ------------------------
+       {CHK:0123456789AB}
+

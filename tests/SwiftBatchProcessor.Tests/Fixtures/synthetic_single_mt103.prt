@@ -1,0 +1,41 @@
+06/07/26-11:01:12	   MT942PMNTS-3459-190768 	 1
+--------------------- Instance Type and Transmission --------------
+       Original received from SWIFT
+       Priority : Normal
+--------------------------- Message Header -------------------------
+       Swift Output : FIN 101 Request for Transfer
+       Sender   : ACMEGRA1XXX
+                  ACME TRADING SA
+       Receiver : PIRBGRAAXXX
+                  HOUSE BANK S.A.
+                  ATHENS GR
+--------------------------- Message Text ---------------------------
+       20: Sender's Reference
+           REF0663459
+       28D: Message Index/Total
+           1/1
+       30: Requested Execution Date
+           260706
+       50H: Ordering Customer
+           /GR7201100000000012345678901
+           ACME TRADING S.A.
+           ATHENS
+       21: Transaction Reference
+           TXN0000001
+       32B: Currency/Transaction Amount
+           Currency : EUR
+           Amount   :                       #12.345,67#
+       57A: Account With Institution - BIC
+           CHASGB2L
+           CORRESPONDENT BANK
+       59: Beneficiary Customer
+           /GB29NWBK60161331926819
+           BENEFICIARY LTD
+           SOMEWHERE
+       70: Remittance Information
+           INVOICE
+       71A: Details of Charges
+           SHA
+--------------------------- Message Trailer ------------------------
+       {CHK:0123456789AB}
+

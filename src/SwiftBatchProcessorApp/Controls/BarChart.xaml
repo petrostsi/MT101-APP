@@ -1,0 +1,32 @@
+<UserControl x:Class="SwiftBatchApp.Controls.BarChart"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root">
+    <!-- Pure-WPF horizontal bar chart (no chart library) -->
+    <Grid>
+        <ItemsControl ItemsSource="{Binding Items, ElementName=Root}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="0,3" ToolTip="{Binding Display}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="80"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Label}" Width="{Binding LabelWidth, ElementName=Root}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                   Foreground="{StaticResource MutedBrush}" Margin="0,0,8,0"/>
+                        <Grid Grid.Column="1" Height="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{Binding BarWidth}"/>
+                                <ColumnDefinition Width="{Binding RestWidth}"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Background="{Binding Brush}" CornerRadius="3"/>
+                        </Grid>
+                        <TextBlock Grid.Column="2" Text="{Binding Display}" TextAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <TextBlock Text="No data for this period." Style="{StaticResource Muted}" Visibility="{Binding EmptyVisibility, ElementName=Root}"/>
+    </Grid>
+</UserControl>

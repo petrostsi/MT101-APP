@@ -1,0 +1,85 @@
+<UserControl x:Class="SwiftBatchApp.Views.PaymentsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24,20,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock Text="Payments" Style="{StaticResource PageTitle}"/>
+            <TextBlock x:Name="Subtitle" Style="{StaticResource PageSubtitle}"
+                       Text="One row per payment order, from the daily PaymentOrders_YYMMDD workbooks. A file is completed when all of its payments are."/>
+        </StackPanel>
+
+        <WrapPanel Grid.Row="1" Margin="0,16,0,10" Orientation="Horizontal">
+            <TextBlock Text="From" Style="{StaticResource FieldLabel}" Margin="0,0,8,0"/>
+            <DatePicker x:Name="FromDate" Width="120" SelectedDateChanged="Dates_Changed"/>
+            <TextBlock Text="To" Style="{StaticResource FieldLabel}" Margin="12,0,8,0"/>
+            <DatePicker x:Name="ToDate" Width="120" SelectedDateChanged="Dates_Changed"/>
+            <StackPanel x:Name="UserFilterPanel" Orientation="Horizontal">
+                <TextBlock Text="User" Style="{StaticResource FieldLabel}" Margin="16,0,8,0"/>
+                <ComboBox x:Name="UserFilter" Width="210" SelectionChanged="Filter_Changed"/>
+            </StackPanel>
+            <TextBlock Text="Status" Style="{StaticResource FieldLabel}" Margin="16,0,8,0"/>
+            <ComboBox x:Name="StatusFilter" Width="110" SelectionChanged="Filter_Changed"/>
+            <TextBlock Text="Type" Style="{StaticResource FieldLabel}" Margin="16,0,8,0"/>
+            <ComboBox x:Name="TypeFilter" Width="90" SelectionChanged="Filter_Changed"/>
+            <TextBox x:Name="SearchBox" Width="230" Margin="16,0,0,0" TextChanged="Search_Changed" ToolTip="File, reference, beneficiary, ordering customer, amount…"/>
+            <Button Content="&#xE894;" Style="{StaticResource IconButton}" Margin="4,0,0,0" ToolTip="Clear filters" Click="ClearFilters_Click"/>
+            <Button Content="&#xE72C;" Style="{StaticResource IconButton}" Margin="4,0,0,0" ToolTip="Reload from the workbooks" Click="Reload_Click"/>
+        </WrapPanel>
+
+        <DataGrid x:Name="PaymentsGrid" Grid.Row="2" Style="{StaticResource GridBase}" FrozenColumnCount="1">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="File" Binding="{Binding FileName}" Width="120" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTemplateColumn Header="Status" SortMemberPath="Status" Width="110">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="8" Height="8" Margin="0,0,7,0" Fill="{Binding Status, Converter={StaticResource StatusBrush}}"/>
+                                <TextBlock Text="{Binding Status}" Style="{StaticResource CellText}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Day" Binding="{Binding DayText}" SortMemberPath="Day" Width="90" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="Txn Ref (21)" Binding="{Binding TxnRef}" Width="130" ElementStyle="{StaticResource CellMono}"/>
+                <DataGridTextColumn Header="Sender Ref (20)" Binding="{Binding SenderRef}" Width="130" ElementStyle="{StaticResource CellMono}"/>
+                <DataGridTextColumn Header="Ccy" Binding="{Binding Currency}" Width="50" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="Amount" Binding="{Binding AmountText}" SortMemberPath="Amount" Width="120" ElementStyle="{StaticResource CellNumber}"/>
+                <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="8" Height="8" Margin="0,0,7,0" Fill="{Binding Type, Converter={StaticResource StatusBrush}}"/>
+                                <TextBlock Text="{Binding Type}" Style="{StaticResource CellText}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Beneficiary" Binding="{Binding Beneficiary}" Width="180" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="Beneficiary acct" Binding="{Binding BeneficiaryAcct}" Width="200" ElementStyle="{StaticResource CellMono}"/>
+                <DataGridTextColumn Header="Ordering customer" Binding="{Binding OrderingCustomer}" Width="180" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="Ordering acct" Binding="{Binding OrderingAcct}" Width="200" ElementStyle="{StaticResource CellMono}"/>
+                <DataGridTextColumn Header="Exec date (30)" Binding="{Binding ExecDate}" Width="100" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="Assigned user" Binding="{Binding AssignedUser}" Width="190" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="Creditor BIC" Binding="{Binding CreditorBic}" Width="110" ElementStyle="{StaticResource CellMono}"/>
+                <DataGridTextColumn Header="Receiver" Binding="{Binding Receiver}" Width="110" ElementStyle="{StaticResource CellMono}"/>
+                <DataGridTextColumn Header="Logged at" Binding="{Binding LoggedAt}" Width="140" ElementStyle="{StaticResource CellText}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <DockPanel Grid.Row="3" Margin="0,10,0,0">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Content="Open file" Margin="0,0,8,0" Click="OpenFile_Click"/>
+                <Button Content="Mark pending" Margin="0,0,8,0" Click="MarkPending_Click"/>
+                <Button Content="Mark completed" Style="{StaticResource PrimaryButton}" Click="MarkCompleted_Click"/>
+            </StackPanel>
+            <TextBlock x:Name="SummaryText" Style="{StaticResource Muted}" VerticalAlignment="Center"/>
+        </DockPanel>
+    </Grid>
+</UserControl>

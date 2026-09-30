@@ -1,0 +1,61 @@
+<UserControl x:Class="SwiftBatchApp.Views.ClientsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24,20,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" MinHeight="140"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="230" MinHeight="120"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock Text="Clients" Style="{StaticResource PageTitle}"/>
+            <TextBlock Style="{StaticResource PageSubtitle}"
+                       Text="The master customer file used to validate ordering customers. A file matches when the ordering IBAN (50), the sender BIC (first 8) and the name all agree with one row."/>
+        </StackPanel>
+
+        <DockPanel Grid.Row="1" Margin="0,16,0,10">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Content="Open master file" Margin="0,0,8,0" Click="OpenMaster_Click"/>
+                <Button Content="Reload" Click="Reload_Click"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBox x:Name="SearchBox" Width="280" TextChanged="Search_Changed" ToolTip="Customer, BIC, IBAN, ASC, CRS…"/>
+                <Button Content="&#xE894;" Style="{StaticResource IconButton}" Margin="4,0,0,0" ToolTip="Clear" Click="Clear_Click"/>
+                <TextBlock x:Name="MasterPathText" Style="{StaticResource Muted}" Margin="16,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+            </StackPanel>
+        </DockPanel>
+
+        <DataGrid x:Name="ClientsGrid" Grid.Row="2" Style="{StaticResource GridBase}" SelectionMode="Single" FrozenColumnCount="1"
+                  SelectionChanged="ClientsGrid_SelectionChanged">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Customer" Binding="{Binding Record.Customer}" Width="230" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="ASC" Binding="{Binding Record.Asc}" Width="80" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="CRS" Binding="{Binding Record.Crs}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="Instructing party" Binding="{Binding Record.Instructing}" Width="180" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="BIC" Binding="{Binding Record.Bic}" Width="110" ElementStyle="{StaticResource CellMono}"/>
+                <DataGridTextColumn Header="IBANs" Binding="{Binding Record.IbansText}" Width="*" MinWidth="220" ElementStyle="{StaticResource CellMono}"/>
+                <DataGridTextColumn Header="Valeur" Binding="{Binding Record.Valeur}" Width="70" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="Files" Binding="{Binding Files}" Width="60" ElementStyle="{StaticResource CellNumber}"/>
+                <DataGridTextColumn Header="Last file" Binding="{Binding LastFileText}" SortMemberPath="LastFile" Width="90" ElementStyle="{StaticResource CellText}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Border Grid.Row="4" Style="{StaticResource Card}">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" x:Name="FilesTitle" Text="Files of the selected client" Style="{StaticResource SectionTitle}"/>
+                <DataGrid x:Name="ClientFilesGrid" Style="{StaticResource GridBase}" RowHeight="26" MouseDoubleClick="ClientFiles_DoubleClick">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="File" Binding="{Binding FileName}" Width="120" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="Date" Binding="{Binding DayText}" SortMemberPath="Day" Width="90" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="Orders" Binding="{Binding Orders}" Width="60" ElementStyle="{StaticResource CellNumber}"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding DisplayStatus}" Width="100" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="Assigned user" Binding="{Binding AssignedUser}" Width="*" ElementStyle="{StaticResource CellText}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,110 @@
+<UserControl x:Class="SwiftBatchApp.Views.ProcessingView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SwiftBatchApp">
+    <UserControl.Resources>
+        <local:LogBrushConverter x:Key="LogBrush"/>
+    </UserControl.Resources>
+    <Grid Margin="24,20,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <DockPanel>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
+                <Button x:Name="StartStopButton" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0" Click="StartStop_Click"/>
+                <Button Content="Check now" Margin="0,0,8,0" Click="CheckNow_Click"/>
+                <Button Content="Watch folder" Margin="0,0,8,0" Click="OpenWatch_Click"/>
+                <Button Content="Archive" Margin="0,0,8,0" Click="OpenArchive_Click"/>
+                <Button Content="Log files" Click="OpenLogs_Click"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="Processing" Style="{StaticResource PageTitle}"/>
+                <TextBlock Style="{StaticResource PageSubtitle}"
+                           Text="The engine runs only on this manager PC: it watches the folder, e-mails each file to one processor, archives it and writes the Excel registry."/>
+            </StackPanel>
+        </DockPanel>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,16,0,0" Padding="14,10">
+            <StackPanel Orientation="Horizontal">
+                <Ellipse x:Name="StateDot" Width="10" Height="10" Margin="0,0,9,0"/>
+                <TextBlock x:Name="StateText" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <TextBlock x:Name="StateDetail" Style="{StaticResource Muted}" Margin="14,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="2" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Style="{StaticResource Card}">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <CheckBox x:Name="AutoScroll" Content="Auto-scroll" IsChecked="True" Margin="0,0,12,0"/>
+                            <Button Content="Copy" Margin="0,0,8,0" Click="CopyLog_Click"/>
+                            <Button Content="Clear" Click="ClearLog_Click"/>
+                        </StackPanel>
+                        <TextBlock Text="Live log" Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <ListBox x:Name="LogList" FontFamily="{StaticResource MonoFont}" FontSize="12" BorderBrush="{StaticResource LineBrush}"
+                             VirtualizingPanel.IsVirtualizing="True" SelectionMode="Extended">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" Foreground="{Binding Converter={StaticResource LogBrush}}" TextWrapping="NoWrap"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="16"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="16"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Watch folder" Style="{StaticResource SectionTitle}"/>
+                        <TextBox x:Name="WatchPath" Style="{StaticResource SelectableText}" Foreground="{StaticResource MutedBrush}"/>
+                        <TextBlock x:Name="WatchCount" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                        <TextBlock x:Name="WatchFiles" Style="{StaticResource Muted}" FontFamily="{StaticResource MonoFont}" FontSize="12" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2" Style="{StaticResource Card}">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="Deferred files (after cut-off / non-working day)" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock DockPanel.Dock="Top" x:Name="ScheduleText" Style="{StaticResource Muted}" Margin="0,0,0,8" FontSize="11.5"/>
+                        <DataGrid x:Name="DeferredGrid" Style="{StaticResource GridBase}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="File" Binding="{Binding FileName}" Width="*" ElementStyle="{StaticResource CellText}"/>
+                                <DataGridTextColumn Header="Received" Binding="{Binding ReceivedAt}" Width="130" ElementStyle="{StaticResource CellText}"/>
+                                <DataGridTextColumn Header="Send at" Binding="{Binding ScheduledFor}" Width="120" ElementStyle="{StaticResource CellText}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Border>
+
+                <Border Grid.Row="4" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="Retry now" Click="CheckNow_Click"/>
+                            <TextBlock Text="Excel write queue" Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center"/>
+                        </DockPanel>
+                        <TextBlock x:Name="QueueText" Style="{StaticResource Muted}" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

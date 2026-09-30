@@ -1,0 +1,116 @@
+<UserControl x:Class="SwiftBatchApp.Views.RegistryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24,20,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" MinHeight="140"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="280" MinHeight="140"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock Text="Registry" Style="{StaticResource PageTitle}"/>
+            <TextBlock Style="{StaticResource PageSubtitle}" Text="One row per distributed file (Registry.xlsx). Select a file to see its payments and act on it."/>
+        </StackPanel>
+
+        <WrapPanel Grid.Row="1" Margin="0,16,0,10">
+            <TextBlock Text="From" Style="{StaticResource FieldLabel}" Margin="0,0,8,0"/>
+            <DatePicker x:Name="FromDate" Width="120" SelectedDateChanged="Filter_Changed"/>
+            <TextBlock Text="To" Style="{StaticResource FieldLabel}" Margin="12,0,8,0"/>
+            <DatePicker x:Name="ToDate" Width="120" SelectedDateChanged="Filter_Changed"/>
+            <StackPanel x:Name="UserFilterPanel" Orientation="Horizontal">
+                <TextBlock Text="User" Style="{StaticResource FieldLabel}" Margin="16,0,8,0"/>
+                <ComboBox x:Name="UserFilter" Width="210" SelectionChanged="Filter_Changed"/>
+            </StackPanel>
+            <TextBlock Text="Status" Style="{StaticResource FieldLabel}" Margin="16,0,8,0"/>
+            <ComboBox x:Name="StatusFilter" Width="130" SelectionChanged="Filter_Changed"/>
+            <TextBox x:Name="SearchBox" Width="230" Margin="16,0,0,0" TextChanged="Search_Changed" ToolTip="File name, transaction reference, user, customer…"/>
+            <Button Content="&#xE894;" Style="{StaticResource IconButton}" Margin="4,0,0,0" ToolTip="Clear filters" Click="ClearFilters_Click"/>
+            <Button Content="&#xE72C;" Style="{StaticResource IconButton}" Margin="4,0,0,0" ToolTip="Reload from the workbooks" Click="Reload_Click"/>
+        </WrapPanel>
+
+        <DataGrid x:Name="FilesGrid" Grid.Row="2" Style="{StaticResource GridBase}" FrozenColumnCount="1" SelectionMode="Single"
+                  SelectionChanged="FilesGrid_SelectionChanged" MouseDoubleClick="FilesGrid_DoubleClick">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="File name" Binding="{Binding FileName}" Width="120" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTemplateColumn Header="Status" SortMemberPath="DisplayStatus" Width="120">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="8" Height="8" Margin="0,0,7,0" Fill="{Binding DisplayStatus, Converter={StaticResource StatusBrush}}"/>
+                                <TextBlock Text="{Binding DisplayStatus}" Style="{StaticResource CellText}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Date" Binding="{Binding DayText}" SortMemberPath="Day" Width="90" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="OSN" Binding="{Binding OsnText}" SortMemberPath="OsnFrom" Width="110" ElementStyle="{StaticResource CellMono}"/>
+                <DataGridTextColumn Header="Orders" Binding="{Binding Orders}" Width="60" ElementStyle="{StaticResource CellNumber}"/>
+                <DataGridTextColumn Header="MT103" Binding="{Binding Mt103}" Width="60" ElementStyle="{StaticResource CellNumber}"/>
+                <DataGridTextColumn Header="MTF" Binding="{Binding Mtf}" Width="50" ElementStyle="{StaticResource CellNumber}"/>
+                <DataGridTextColumn Header="Exec date" Binding="{Binding ExecutionDate}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="After cut-off" Binding="{Binding AfterCutoff}" Width="95" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="Assigned user" Binding="{Binding AssignedUser}" Width="190" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTemplateColumn Header="Customer check" SortMemberPath="CustomerMatch" Width="230">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="8" Height="8" Margin="0,0,7,0" Fill="{Binding MatchKind, Converter={StaticResource MatchBrush}}"/>
+                                <TextBlock Text="{Binding CustomerMatch}" Style="{StaticResource CellText}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Valeur" Binding="{Binding Valeur}" Width="70" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="Logged at" Binding="{Binding LoggedAt}" Width="140" ElementStyle="{StaticResource CellText}"/>
+                <DataGridTextColumn Header="Transaction refs" Binding="{Binding TxnRefs}" Width="260" ElementStyle="{StaticResource CellMono}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <TextBlock x:Name="SummaryText" Grid.Row="3" Style="{StaticResource Muted}" Margin="0,8,0,0"/>
+
+        <GridSplitter Grid.Row="4" Height="6" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="Transparent" ResizeDirection="Rows"/>
+
+        <Border Grid.Row="5" Style="{StaticResource Card}">
+            <DockPanel>
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
+                        <Button x:Name="OpenFileButton" Content="Open file" Margin="0,0,8,0" Click="OpenFile_Click"/>
+                        <Button x:Name="ShowPaymentsButton" Content="Show in Payments" Margin="0,0,8,0" Click="ShowPayments_Click"/>
+                        <Button x:Name="ReassignButton" Content="Reassign…" Margin="0,0,8,0" Click="Reassign_Click"/>
+                        <Button x:Name="CompleteButton" Content="Mark file as completed" Style="{StaticResource PrimaryButton}" Click="Complete_Click"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock x:Name="DetailTitle" Style="{StaticResource SectionTitle}" Margin="0,0,0,2" Text="No file selected"/>
+                        <TextBox x:Name="DetailText" Style="{StaticResource SelectableText}" Foreground="{StaticResource MutedBrush}"/>
+                    </StackPanel>
+                </DockPanel>
+                <DataGrid x:Name="FilePaymentsGrid" Style="{StaticResource GridBase}" RowHeight="26">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Status" SortMemberPath="Status" Width="110">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="8" Height="8" Margin="0,0,7,0" Fill="{Binding Status, Converter={StaticResource StatusBrush}}"/>
+                                        <TextBlock Text="{Binding Status}" Style="{StaticResource CellText}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Txn Ref (21)" Binding="{Binding TxnRef}" Width="130" ElementStyle="{StaticResource CellMono}"/>
+                        <DataGridTextColumn Header="Ccy" Binding="{Binding Currency}" Width="50" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="Amount" Binding="{Binding AmountText}" SortMemberPath="Amount" Width="120" ElementStyle="{StaticResource CellNumber}"/>
+                        <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="65" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="Beneficiary" Binding="{Binding Beneficiary}" Width="*" MinWidth="160" ElementStyle="{StaticResource CellText}"/>
+                        <DataGridTextColumn Header="Beneficiary acct" Binding="{Binding BeneficiaryAcct}" Width="200" ElementStyle="{StaticResource CellMono}"/>
+                        <DataGridTextColumn Header="Creditor BIC" Binding="{Binding CreditorBic}" Width="110" ElementStyle="{StaticResource CellMono}"/>
+                        <DataGridTextColumn Header="Exec date" Binding="{Binding ExecDate}" Width="90" ElementStyle="{StaticResource CellText}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

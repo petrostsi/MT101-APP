@@ -1,0 +1,133 @@
+<UserControl x:Class="SwiftBatchApp.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <Style x:Key="Row" TargetType="Grid">
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+    </UserControl.Resources>
+    <DockPanel Margin="24,20,24,20">
+        <StackPanel DockPanel.Dock="Top">
+            <TextBlock Text="Settings" Style="{StaticResource PageTitle}"/>
+            <TextBlock Style="{StaticResource PageSubtitle}"
+                       Text="Stored in SwiftBatch.db next to the program on this (manager) PC. The engine re-reads them at every cycle; the archive location is shared with the users' PCs through the team file."/>
+        </StackPanel>
+
+        <Border DockPanel.Dock="Bottom" Style="{StaticResource Card}" Margin="0,12,0,0" Padding="14,10">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="Send test e-mail" Margin="0,0,8,0" Click="TestMail_Click"/>
+                    <Button Content="Revert" Margin="0,0,8,0" Click="Revert_Click"/>
+                    <Button Content="Save settings" Style="{StaticResource PrimaryButton}" Click="Save_Click"/>
+                </StackPanel>
+                <TextBlock x:Name="StatusText" Style="{StaticResource Muted}" VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <ScrollViewer Margin="0,16,0,0" VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Folders and files" Style="{StaticResource SectionTitle}"/>
+                            <TextBlock Text="Watch folder (new .prt files arrive here)" Style="{StaticResource Muted}"/>
+                            <Grid Style="{StaticResource Row}">
+                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBox x:Name="WatchFolder"/>
+                                <Button Grid.Column="1" Content="Browse…" Margin="6,0,0,0" Click="BrowseWatch_Click"/>
+                            </Grid>
+                            <TextBlock Text="Archive root (files go to …\YYYY\MM\DD with PaymentOrders_YYMMDD.xlsx)" Style="{StaticResource Muted}"/>
+                            <Grid Style="{StaticResource Row}">
+                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBox x:Name="ArchiveRoot"/>
+                                <Button Grid.Column="1" Content="Browse…" Margin="6,0,0,0" Click="BrowseArchive_Click"/>
+                            </Grid>
+                            <TextBlock Text="Registry workbook (Registry.xlsx — the team file AppUsers.json is kept next to it)" Style="{StaticResource Muted}"/>
+                            <Grid Style="{StaticResource Row}">
+                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBox x:Name="RegistryPath"/>
+                                <Button Grid.Column="1" Content="Browse…" Margin="6,0,0,0" Click="BrowseRegistry_Click"/>
+                            </Grid>
+                            <TextBlock Text="Master customer file (.xlsx; empty = no customer validation)" Style="{StaticResource Muted}"/>
+                            <Grid Style="{StaticResource Row}">
+                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBox x:Name="MasterFilePath"/>
+                                <Button Grid.Column="1" Content="Browse…" Margin="6,0,0,0" Click="BrowseMaster_Click"/>
+                            </Grid>
+                            <TextBlock Text="File filter (e.g. *.prt or *.prt;*.txt)" Style="{StaticResource Muted}"/>
+                            <TextBox x:Name="FileFilter" Width="220" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Outlook" Style="{StaticResource SectionTitle}"/>
+                            <TextBlock Text="Send from account (SMTP address in this Outlook profile; empty = default account)" Style="{StaticResource Muted}"/>
+                            <TextBox x:Name="SenderAccount" Margin="0,0,0,10"/>
+                            <TextBlock Text="Manager e-mail (escalations and unmatched customers)" Style="{StaticResource Muted}"/>
+                            <TextBox x:Name="ManagerEmail" Margin="0,0,0,10"/>
+                            <TextBlock Text="Manager name" Style="{StaticResource Muted}"/>
+                            <TextBox x:Name="ManagerName" Margin="0,0,0,10"/>
+                            <TextBlock Text="Wait for an out-of-office reply (seconds per file, 0 = no check)" Style="{StaticResource Muted}"/>
+                            <TextBox x:Name="OooWaitSeconds" Width="120" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Schedule" Style="{StaticResource SectionTitle}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Check every (seconds)" Style="{StaticResource Muted}"/>
+                                    <TextBox x:Name="PollSeconds"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Cut-off time" Style="{StaticResource Muted}"/>
+                                    <TextBox x:Name="CutoffTime"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="Send deferred files at" Style="{StaticResource Muted}"/>
+                                    <TextBox x:Name="DeferredSendTime"/>
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock Style="{StaticResource Muted}" FontSize="11.5" Margin="0,8,0,10"
+                                       Text="Files arriving after the cut-off, on weekends or on holidays are moved to the next working day's folder and e-mailed at the send time."/>
+                            <CheckBox x:Name="AutoStart" Content="Start the engine automatically when the app opens"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Holidays (non-working days besides weekends)" Style="{StaticResource SectionTitle}"/>
+                            <TextBlock Style="{StaticResource Muted}" FontSize="11.5" Margin="0,0,0,6"
+                                       Text="One date per line or comma-separated, as yyyy-MM-dd (dd/MM/yyyy is accepted). The suggested lists are a starting point — review them."/>
+                            <TextBox x:Name="Holidays" Style="{StaticResource MultiLineInput}" Height="170" FontFamily="{StaticResource MonoFont}"/>
+                            <WrapPanel Margin="0,8,0,0">
+                                <ComboBox x:Name="HolidayYear" Width="80" Margin="0,0,8,0"/>
+                                <Button Content="Add Greek bank holidays" Margin="0,0,8,0" Click="AddGreek_Click"/>
+                                <Button Content="Add TARGET2 closing days" Margin="0,0,8,0" Click="AddTarget2_Click"/>
+                                <Button Content="Sort / clean" Click="CleanHolidays_Click"/>
+                            </WrapPanel>
+                            <TextBlock x:Name="HolidayInfo" Style="{StaticResource Muted}" FontSize="11.5" Margin="0,6,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

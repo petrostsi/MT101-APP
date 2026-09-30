@@ -1,0 +1,25 @@
+{
+  // Copy this file to "SwiftBatch.defaults.json" (git-ignored) in the repo root: publish.bat puts it next to the exe.
+  // It seeds a NEW SwiftBatch.db only (missing settings + the user list when empty). Afterwards use Settings / Users.
+  // Keep real share paths and e-mail addresses out of git: this repository is public.
+  "Settings": {
+    "WatchFolder": "\\\\fileserver\\share\\MT942PMNTS",
+    "ArchiveRoot": "\\\\fileserver\\share\\MT942PMNTS",
+    "RegistryPath": "\\\\fileserver\\share\\MT942PMNTS\\Registry.xlsx",
+    "MasterFilePath": "",
+    "SenderAccount": "manager@example.com",
+    "ManagerEmail": "manager@example.com",
+    "ManagerName": "Manager Name",
+    "PollSeconds": "300",
+    "OooWaitSeconds": "60",
+    "FileFilter": "*.prt",
+    "CutoffTime": "13:00",
+    "DeferredSendTime": "07:00",
+    "Holidays": "",
+    "AutoStart": "0"
+  },
+  "Users": [
+    { "Email": "processor1@example.com", "DisplayName": "Processor One", "WindowsUser": "processor1" },
+    { "Email": "processor2@example.com", "DisplayName": "Processor Two", "WindowsUser": "processor2" }
+  ]
+}

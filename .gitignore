@@ -1,0 +1,24 @@
+# Build output
+bin/
+obj/
+dist/
+publish/
+*.user
+*.suo
+.vs/
+.vscode/
+.idea/
+TestResults/
+
+# Runtime state (lives next to the exe, never committed)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+logs/
+
+# Organisation-specific defaults (real share paths, team e-mails) — keep local only
+SwiftBatch.defaults.json
+
+# Real MT101 samples may contain customer data — keep local only
+tests/SwiftBatchProcessor.Tests/Fixtures/real/
